@@ -2,9 +2,9 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { usePlayerStore } from "@/stores/usePlayerStore";
 import {
-    Laptop2,
-    ListMusic,
-    Mic2,
+  Laptop2,
+  ListMusic,
+  Mic2,
   Pause,
   Play,
   Repeat,
@@ -15,15 +15,23 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-
 const formatTime = (seconds: number) => {
-	const minutes = Math.floor(seconds / 60);
-	const remainingSeconds = Math.floor(seconds % 60);
-	return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 };
 export const PlayBackControls = () => {
-  const { currentSong, isPlaying, togglePlay, playNext, playPrevious } =
-    usePlayerStore();
+  const {
+    currentSong,
+    isPlaying,
+    togglePlay,
+    playNext,
+    playPrevious,
+    isShuffling,
+    toggleShuffle,
+    isRepeating,
+    toggleRepeat,
+  } = usePlayerStore();
 
   const [volume, setVolume] = useState(75);
   const [currentTime, setCurrentTime] = useState(0);
@@ -84,13 +92,17 @@ export const PlayBackControls = () => {
             </>
           )}
         </div>
-        {/* player controls*/}
+        {/* player controls */}
         <div className="flex flex-col items-center gap-2 flex-1 max-w-full sm:max-w-[45%]">
           <div className="flex items-center gap-4 sm:gap-6">
             <Button
               size="icon"
               variant="ghost"
-              className="hidden sm:inline-flex hover:text-white text-zinc-400"
+              className={`hidden sm:inline-flex hover:text-white text-zinc-400 ${
+                isShuffling ? "text-green-500" : ""
+              }`}
+              onClick={toggleShuffle}
+              disabled={!currentSong}
             >
               <Shuffle className="h-4 w-4" />
             </Button>
@@ -127,7 +139,11 @@ export const PlayBackControls = () => {
             <Button
               size="icon"
               variant="ghost"
-              className="hidden sm:inline-flex hover:text-white text-zinc-400"
+              className={`hidden sm:inline-flex hover:text-white text-zinc-400 ${
+                isRepeating ? "text-green-500" : ""
+              }`}
+              onClick={toggleRepeat}
+              disabled={!currentSong}
             >
               <Repeat className="h-4 w-4" />
             </Button>
@@ -144,9 +160,7 @@ export const PlayBackControls = () => {
               className="w-full hover:cursor-grab active:cursor-grabbing"
               onValueChange={handleSeek}
             />
-            <div className="text-xs text-zinc-400">
-              {formatTime(duration)}
-            </div>
+            <div className="text-xs text-zinc-400">{formatTime(duration)}</div>
           </div>
         </div>
         {/* volume controls */}

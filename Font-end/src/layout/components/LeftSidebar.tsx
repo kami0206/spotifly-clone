@@ -4,18 +4,17 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useMusicStore } from "@/stores/useMusicStore";
 import { SignedIn } from "@clerk/clerk-react";
-import { HomeIcon, Library, MessageCircle } from "lucide-react";
+import { HomeIcon, Library, MessageCircle, Search } from "lucide-react";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 
 const LeftSidebar = () => {
+  const { albums, fetchAlbums, isLoading } = useMusicStore();
 
-  const { albums, fetchAlbums,isLoading} = useMusicStore();
-  useEffect(()=>{
-    fetchAlbums()
-  },[fetchAlbums])
-  console.log({albums});
-  
+  useEffect(() => {
+    fetchAlbums();
+  }, [fetchAlbums]);
+
   return (
     <div className="h-full flex flex-col gap-2">
       {/* nav menu */}
@@ -32,6 +31,20 @@ const LeftSidebar = () => {
           <HomeIcon className="mr-2 size-5" />
           <span className="hidden md:inline">Home</span>
         </Link>
+
+        <Link
+          to={"/search"}
+          className={cn(
+            buttonVariants({
+              variant: "ghost",
+              className: "w-full justify-start text-white hover:bg-zinc-800",
+            })
+          )}
+        >
+          <Search className="mr-2 size-5" />
+          <span className="hidden md:inline">Search</span>
+        </Link>
+
         <SignedIn>
           <Link
             to={"/chat"}
@@ -47,6 +60,7 @@ const LeftSidebar = () => {
           </Link>
         </SignedIn>
       </div>
+
       {/* library section */}
       <div className="flex-1 rounded-lg bg-zinc-900 z-4">
         <div className="flex items-center justify-between mb-4">
@@ -55,40 +69,37 @@ const LeftSidebar = () => {
             <span className="hidden md:inline">Playlists</span>
           </div>
         </div>
-        <ScrollArea className='h-[calc(100vh-300px)]'>
-					<div className='space-y-2'>
-						{isLoading ? (
-							<PlaylistSkeleton />
-						) : (
-              <ScrollArea className='h-[calc(100vh-300px)]'>
-              <div className='space-y-2'>
-                {isLoading ? (
-                  <PlaylistSkeleton />
-                ) : (
-                  albums.map((album) => (
+        <ScrollArea className="h-[calc(100vh-300px)]">
+          <div className="space-y-2">
+            {isLoading ? (
+              <PlaylistSkeleton />
+            ) : (
+              <ScrollArea className="h-[calc(100vh-300px)]">
+                <div className="space-y-2">
+                  {albums.map((album) => (
                     <Link
                       to={`/albums/${album._id}`}
                       key={album._id}
-                      className='p-2 hover:bg-zinc-800 rounded-md flex items-center gap-3 group cursor-pointer'
+                      className="p-2 hover:bg-zinc-800 rounded-md flex items-center gap-3 group cursor-pointer"
                     >
                       <img
                         src={album.imageUrl}
-                        alt='Playlist img'
-                        className='size-12 rounded-md flex-shrink-0 object-cover'
+                        alt="Playlist img"
+                        className="size-12 rounded-md flex-shrink-0 object-cover"
                       />
-    
-                      <div className='flex-1 min-w-0 hidden md:block'>
-                        <p className='font-medium truncate'>{album.title}</p>
-                        <p className='text-sm text-zinc-400 truncate'>Album • {album.artist}</p>
+                      <div className="flex-1 min-w-0 hidden md:block">
+                        <p className="font-medium truncate">{album.title}</p>
+                        <p className="text-sm text-zinc-400 truncate">
+                          Album • {album.artist}
+                        </p>
                       </div>
                     </Link>
-                  ))
-                )}
-              </div>
-            </ScrollArea>
-						)}
-					</div>
-				</ScrollArea>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+          </div>
+        </ScrollArea>
       </div>
     </div>
   );

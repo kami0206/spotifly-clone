@@ -7,8 +7,8 @@ import { Outlet } from "react-router-dom";
 import LeftSidebar from "./components/LeftSidebar";
 import FriendsActivity from "./components/FriendsActivity";
 import AudioPlayer from "./components/AudioPlayer";
-import PlayBackControls from "./components/PlayBackControls";
 import { useEffect, useState } from "react";
+import PlayBackControls from "./components/PlayBackControls";
 
 const MainLayout = () => {
   const [isMobile, setIsMobile] = useState(false);
