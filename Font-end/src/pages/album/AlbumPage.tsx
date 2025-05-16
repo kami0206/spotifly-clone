@@ -2,8 +2,9 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useMusicStore } from "@/stores/useMusicStore";
 import { usePlayerStore } from "@/stores/usePlayerStore";
-import { Clock, Pause, Play } from "lucide-react";
+import { Clock, Pause, Play, Share2 } from "lucide-react";
 import { useEffect } from "react";
+import toast from "react-hot-toast";
 import { useParams } from "react-router-dom";
 
 export const formatDuration = (seconds: number) => {
@@ -146,6 +147,19 @@ const AlbumPage = () => {
                         </div>
                         <div className="flex items-center gap-4">
                           <span>{formatDuration(song.duration)}</span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const link = `${window.location.origin}/songs/${song._id}`;
+                              navigator.clipboard.writeText(link);
+                              toast.success("Đã sao chép liên kết bài hát!");
+                            }}
+                            className="text-zinc-400 hover:text-white"
+                          >
+                            <Share2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </div>
                     );

@@ -84,7 +84,7 @@ export const searchSongs = async (req, res, next) => {
   try {
     const { query } = req.query;
 
-    if (!query) { 
+    if (!query) {
       return res.status(400).json({ message: "Missing query parameter." });
     }
 
@@ -95,6 +95,51 @@ export const searchSongs = async (req, res, next) => {
     }).select("_id title artist imageUrl audioUrl");
 
     res.json(songs);
+  } catch (error) {
+    next(error);
+  }
+};
+export const getSongById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    // Tìm bài hát theo id
+    const song = await Song.findById(id).select(
+      "_id title artist imageUrl audioUrl duration albumId shareCount"
+    );
+
+    if (!song) {
+      return res.status(404).json({ message: "Song not found." });
+    }
+
+    res.json(song);
+  } catch (error) {
+    next(error);
+  }
+};
+export const shareSong = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const song = await Song.findById(id).select(
+      "_id title artist imageUrl audioUrl"
+    );
+
+    if (!song) {
+      return res.status(404).json({ message: "Song not found." });
+    }
+
+    // Optional: tăng số lượt chia sẻ
+    await Song.findByIdAndUpdate(id, { $inc: { shareCount: 1 } });
+
+    // Tạo link chia sẻ (có thể dùng domain thật của bạn)
+    const shareUrl = `https://yourmusicapp.com/song/${song._id}`;
+
+    res.json({
+      message: "Share link generated successfully.",
+      shareUrl,
+      song,
+    });
   } catch (error) {
     next(error);
   }

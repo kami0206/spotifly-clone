@@ -13,6 +13,7 @@ interface MusicStore {
   madeForYouSongs: Song[];
   trendingSongs: Song[];
   stats: Stats;
+  currentSongInfo: Song | null;
 
   fetchAlbums: () => Promise<void>;
   fetchAlbumById: (id: string) => Promise<void>;
@@ -24,6 +25,7 @@ interface MusicStore {
   deleteSong: (id: string) => Promise<void>;
   deleteAlbum: (id: string) => Promise<void>;
   searchSongs: (query: string) => Promise<void>;
+  fetchSongById: (id: string) => Promise<void>;
 }
 
 export const useMusicStore = create<MusicStore>((set) => ({
@@ -33,6 +35,8 @@ export const useMusicStore = create<MusicStore>((set) => ({
   isLoading: false,
   error: null,
   currentAlbum: null,
+  currentSongInfo: null,
+
   madeForYouSongs: [],
   featuredSongs: [],
   trendingSongs: [],
@@ -41,6 +45,40 @@ export const useMusicStore = create<MusicStore>((set) => ({
     totalAlbums: 0,
     totalUsers: 0,
     totalArtists: 0,
+  },
+
+  fetchSongById: async (id: string) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const response = await axiosInstance.get(`/songs/${id}`);
+
+      if (response?.data) {
+        const song = response.data;
+        set({ currentSongInfo: song });
+
+        // ✅ Fetch album info nếu có albumId
+        if (song.albumId) {
+          const albumResponse = await axiosInstance.get(
+            `/albums/${song.albumId}`
+          );
+          if (albumResponse?.data) {
+            set({ currentAlbum: albumResponse.data });
+          } else {
+            set({ currentAlbum: null });
+          }
+        } else {
+          set({ currentAlbum: null });
+        }
+      } else {
+        throw new Error("No data received from API");
+      }
+    } catch (error: any) {
+      console.error("Error fetching song by ID:", error);
+      set({ error: error.response?.data?.message || error.message });
+    } finally {
+      set({ isLoading: false });
+    }
   },
 
   // Fetch all songs

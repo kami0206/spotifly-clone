@@ -6,10 +6,11 @@ interface PlayerStore {
   currentSong: Song | null;
   isPlaying: boolean;
   queue: Song[];
-  originalQueue: Song[]; // 🔧 để khôi phục khi tắt shuffle
+  originalQueue: Song[];
   currentIndex: number;
   isShuffling: boolean;
   isRepeating: boolean;
+  playSong: (songs: Song[], index: number) => void;
 
   toggleRepeat: () => void;
   initializeQueue: (songs: Song[]) => void;
@@ -201,5 +202,25 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   },
   toggleRepeat: () => {
     set({ isRepeating: !get().isRepeating });
+  },
+  playSong: (songs, index) => {
+    if (songs.length === 0) return;
+
+    const song = songs[index];
+    const socket = useChatStore.getState().socket;
+    if (socket.auth) {
+      socket.emit("update_activity", {
+        userId: socket.auth.userId,
+        activity: `Playing ${song.title} by ${song.artist}`,
+      });
+    }
+
+    set({
+      queue: songs,
+      originalQueue: songs,
+      currentSong: song,
+      currentIndex: index,
+      isPlaying: true,
+    });
   },
 }));

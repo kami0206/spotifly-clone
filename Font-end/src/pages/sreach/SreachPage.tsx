@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import SearchHeader from "./component/SreachHeader";
 import SearchResults from "./component/SearchResults";
 import { useMusicStore } from "@/stores/useMusicStore";
