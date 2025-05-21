@@ -8,7 +8,7 @@ import AlbumPage from "./pages/album/AlbumPage";
 import AdminPage from "./pages/admin/AdminPage";
 import { Toaster } from "react-hot-toast";
 import NotFoundPage from "./pages/404/NotFoundPage";
-import SreachPage from "./pages/sreach/SreachPage";
+import SreachPage from "./pages/sreach/SearchPage";
 import SongPage from "./pages/songs/SongPage";
 import AllSongPage from "./pages/songs/AllSongPage";
 function App() {

@@ -1,3 +1,4 @@
+import { Album } from "../models/album.model.js";
 import { Song } from "../models/song.model.js";
 
 // Không cần định nghĩa lại hàm requestZingMp3 ở đây
@@ -80,25 +81,6 @@ export const getTrendingSongs = async (req, res, next) => {
   }
 };
 
-export const searchSongs = async (req, res, next) => {
-  try {
-    const { query } = req.query;
-
-    if (!query) {
-      return res.status(400).json({ message: "Missing query parameter." });
-    }
-
-    const regex = new RegExp(query, "i");
-
-    const songs = await Song.find({
-      $or: [{ title: regex }, { artist: regex }],
-    }).select("_id title artist imageUrl audioUrl");
-
-    res.json(songs);
-  } catch (error) {
-    next(error);
-  }
-};
 export const getSongById = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -140,6 +122,32 @@ export const shareSong = async (req, res, next) => {
       shareUrl,
       song,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+export const searchSongs = async (req, res, next) => {
+  try {
+    const { query } = req.query;
+
+    if (!query) {
+      return res.status(400).json({ message: "Missing query parameter." });
+    }
+
+    const regex = new RegExp(query, "i");
+
+    // Tìm kiếm bài hát
+    const songs = await Song.find({
+      $or: [{ title: regex }, { artist: regex }],
+    }).select("_id title artist imageUrl audioUrl");
+
+    // Tìm kiếm album
+    const albums = await Album.find({
+      $or: [{ title: regex }, { artist: regex }],
+    }).select("_id title artist imageUrl releaseYear");
+
+    // Trả kết quả cả hai
+    res.json({ songs, albums });
   } catch (error) {
     next(error);
   }

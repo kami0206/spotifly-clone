@@ -19,7 +19,7 @@ const SearchHeader = ({ onSearch }: { onSearch: (text: string) => void }) => {
         value={value}
         onChange={handleChange}
         placeholder="Search"
-        className="pl-10 pr-4 py-2 bg-zinc-900 text-white rounded-full border border-zinc-700 focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="pl-10 pr-4 py-6 bg-zinc-900 text-white rounded-full border border-zinc-700 focus-visible:ring-0 focus-visible:ring-offset-0"
       />
     </div>
   );

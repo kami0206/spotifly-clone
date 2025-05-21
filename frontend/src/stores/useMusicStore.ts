@@ -243,14 +243,19 @@ export const useMusicStore = create<MusicStore>((set) => ({
       set({ isLoading: false });
     }
   },
-  searchSongs: async (query: string) => {
+  searchSongs: async (query) => {
     set({ isLoading: true, error: null });
+
     try {
       const response = await axiosInstance.get(
-        `/songs/search?q=${encodeURIComponent(query)}`
+        `/songs/search?query=${encodeURIComponent(query)}`
       );
+
       if (response?.data) {
-        set({ songs: response.data });
+        set({
+          songs: response.data.songs || [],
+          albums: response.data.albums || [],
+        });
       } else {
         throw new Error("No data received from API");
       }
