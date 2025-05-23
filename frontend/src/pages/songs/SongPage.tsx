@@ -74,11 +74,11 @@ const SongPage = () => {
           </h1>
           <div className="flex flex-wrap items-center gap-2 mt-3 text-sm text-blue-300">
             <span className="flex items-center gap-1">
-              <img
+              {/* <img
                 src="https://i.pravatar.cc/20?u="
                 alt={song.artist}
                 className="w-5 h-5 rounded-full"
-              />
+              /> */}
               {song.artist}
             </span>
             <span>• {currentAlbum?.title || "Unknown Album"}</span>

@@ -14,6 +14,7 @@ import {
   Volume1,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 
 const formatTime = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);
@@ -75,21 +76,24 @@ export const PlayBackControls = () => {
         {/* currently playing song */}
         <div className="hidden sm:flex items-center gap-4 min-w-[180px] w-[30%]">
           {currentSong && (
-            <>
+            <Link
+              to={`/songs/${currentSong._id}`}
+              className="flex items-center gap-4 group cursor-pointer"
+            >
               <img
                 src={currentSong.imageUrl}
                 alt={currentSong.title}
                 className="w-14 h-14 object-cover rounded-md"
               />
               <div className="flex-1 min-w-0">
-                <div className="font-medium truncate hover:underline cursor-pointer">
+                <div className="font-medium truncate group-hover:underline">
                   {currentSong.title}
                 </div>
-                <div className="text-sm text-zinc-400 truncate hover:underline cursor-pointer">
+                <div className="text-sm text-zinc-400 truncate group-hover:underline">
                   {currentSong.artist}
                 </div>
               </div>
-            </>
+            </Link>
           )}
         </div>
         {/* player controls */}

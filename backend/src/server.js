@@ -16,7 +16,7 @@ import authRoutes from "./routers/auth.route.js";
 import songRoutes from "./routers/song.route.js";
 import albumRoutes from "./routers/album.route.js";
 import statRoutes from "./routers/stat.route.js";
-
+import playlistRouter from "./routers/playlist.route.js";
 dotenv.config();
 
 const __dirname = path.resolve();
@@ -61,13 +61,13 @@ app.use(
 //   }
 // });
 
-app.use("/api/users", userRoutes),
-  app.use("/api/admin", adminRoutes),
-  app.use("/api/auth", authRoutes),
-  app.use("/api/songs", songRoutes),
-  app.use("/api/albums", albumRoutes),
-  app.use("/api/stats", statRoutes);
-
+app.use("/api/users", userRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/songs", songRoutes);
+app.use("/api/albums", albumRoutes);
+app.use("/api/stats", statRoutes);
+app.use("/api/playlists", playlistRouter);
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
   app.get("*", (req, res) => {
