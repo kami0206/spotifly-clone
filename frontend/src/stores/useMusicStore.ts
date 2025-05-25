@@ -16,7 +16,7 @@ interface MusicStore {
   trendingSongs: Song[];
   stats: Stats;
   currentSongInfo: Song | null;
-
+  currentPlaylist: Playlist | null;
   fetchAlbums: () => Promise<void>;
   fetchAlbumById: (id: string) => Promise<void>;
   fetchFeaturedSongs: () => Promise<void>;
@@ -29,7 +29,17 @@ interface MusicStore {
   searchSongs: (query: string) => Promise<void>;
   fetchSongById: (id: string) => Promise<void>;
   fetchPlaylists: () => Promise<void>;
+  fetchPlaylistById: (id: string) => Promise<void>; // Added for PlaylistPage
   deletePlaylist: (id: string) => Promise<void>;
+  createOrUpdatePlaylist: (
+    title: string,
+    imageUrl?: string,
+    songIds?: string[]
+  ) => Promise<Playlist | void>;
+  removeSongsFromPlaylist: (
+    playlistId: string,
+    songIds: string[]
+  ) => Promise<void>;
 }
 
 export const useMusicStore = create<MusicStore>((set) => ({
@@ -41,6 +51,7 @@ export const useMusicStore = create<MusicStore>((set) => ({
   error: null,
   currentAlbum: null,
   currentSongInfo: null,
+  currentPlaylist: null,
   madeForYouSongs: [],
   featuredSongs: [],
   trendingSongs: [],
@@ -189,8 +200,6 @@ export const useMusicStore = create<MusicStore>((set) => ({
   fetchPlaylists: async () => {
     set({ isLoading: true, error: null });
     try {
-      // const url = `${axiosInstance.defaults.baseURL}/api/playlists`;
-      // console.log("Fetching playlists from:", url);
       const response = await axiosInstance.get("/playlists");
       if (response?.data) {
         set({ playlists: response.data });
@@ -199,13 +208,28 @@ export const useMusicStore = create<MusicStore>((set) => ({
       }
     } catch (error: any) {
       console.error("Lỗi khi lấy danh sách phát:", error);
-      console.error("Response data:", error.response?.data);
       const errorMessage =
         error.response?.status === 401
           ? "Vui lòng đăng nhập để xem danh sách phát"
           : error.response?.data?.message || error.message;
       set({ error: errorMessage });
       toast.error(errorMessage);
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+  fetchPlaylistById: async (id: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axiosInstance.get(`/playlists/${id}`);
+      if (response?.data) {
+        set({ currentPlaylist: response.data });
+      } else {
+        throw new Error("Không nhận được dữ liệu từ API");
+      }
+    } catch (error: any) {
+      console.error("Lỗi khi lấy playlist theo ID:", error);
+      set({ error: error.response?.data?.message || error.message });
     } finally {
       set({ isLoading: false });
     }
@@ -297,6 +321,70 @@ export const useMusicStore = create<MusicStore>((set) => ({
     } catch (error: any) {
       console.error("Lỗi khi tìm kiếm bài hát:", error);
       set({ error: error.response?.data?.message || error.message });
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+  createOrUpdatePlaylist: async (
+    title: string,
+    imageUrl?: string,
+    songIds: string[] = []
+  ) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axiosInstance.post("/playlists/cr", {
+        title,
+        imageUrl, // Include imageUrl to allow manual override
+        songIds,
+      });
+      if (response?.data) {
+        const newPlaylist = response.data as Playlist;
+        set((state) => ({
+          playlists: [...state.playlists, newPlaylist],
+        }));
+        toast.success("Tạo/cập nhật playlist thành công");
+        return newPlaylist;
+      } else {
+        throw new Error("Không nhận được dữ liệu từ API");
+      }
+    } catch (error: any) {
+      console.error("Lỗi khi tạo/cập nhật danh sách phát:", error);
+      const errorMessage = error.response?.data?.message || error.message;
+      set({ error: errorMessage });
+      toast.error(errorMessage);
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+  removeSongsFromPlaylist: async (playlistId: string, songIds: string[]) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axiosInstance.patch(
+        `/playlists/${playlistId}/songs`,
+        {
+          songIds,
+        }
+      );
+      if (response?.data?.playlist) {
+        const updatedPlaylist = response.data.playlist;
+        set((state) => ({
+          playlists: state.playlists.map((playlist) =>
+            playlist._id === playlistId ? updatedPlaylist : playlist
+          ),
+          currentPlaylist:
+            state.currentPlaylist?._id === playlistId
+              ? updatedPlaylist
+              : state.currentPlaylist,
+        }));
+        toast.success("Xóa bài hát khỏi danh sách phát thành công");
+      } else {
+        throw new Error("Không nhận được dữ liệu từ API");
+      }
+    } catch (error: any) {
+      console.error("Lỗi khi xóa bài hát khỏi danh sách phát:", error);
+      const errorMessage = error.response?.data?.message || error.message;
+      set({ error: errorMessage });
+      toast.error(errorMessage);
     } finally {
       set({ isLoading: false });
     }

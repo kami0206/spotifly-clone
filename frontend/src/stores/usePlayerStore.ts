@@ -11,15 +11,15 @@ interface PlayerStore {
   isShuffling: boolean;
   isRepeating: boolean;
   playSong: (songs: Song[], index: number) => void;
-
+  playAlbum: (songs: Song[], startIndex?: number) => void;
+  playPlaylist: (songs: Song[], startIndex?: number) => void; // Added for PlaylistPage
   toggleRepeat: () => void;
   initializeQueue: (songs: Song[]) => void;
-  playAlbum: (songs: Song[], startIndex?: number) => void;
   setCurrentSong: (song: Song | null) => void;
   togglePlay: () => void;
   playNext: () => void;
   playPrevious: () => void;
-  toggleShuffle: () => void; // 🔧 đổi tên từ shuffleQueue
+  toggleShuffle: () => void;
 }
 
 export const usePlayerStore = create<PlayerStore>((set, get) => ({
@@ -43,19 +43,76 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   playAlbum: (songs: Song[], startIndex = 0) => {
     if (songs.length === 0) return;
 
-    const song = songs[startIndex];
+    const { isShuffling } = get();
+
+    const finalQueue = [...songs];
+    if (isShuffling) {
+      for (let i = finalQueue.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [finalQueue[i], finalQueue[j]] = [finalQueue[j], finalQueue[i]];
+      }
+    }
+
+    const songToPlay = finalQueue[startIndex];
 
     const socket = useChatStore.getState().socket;
     if (socket.auth) {
       socket.emit("update_activity", {
         userId: socket.auth.userId,
-        activity: `Playing ${song.title} by ${song.artist}`,
+        activity: `Playing ${songToPlay.title} by ${songToPlay.artist}`,
       });
     }
+
     set({
-      queue: songs,
+      queue: finalQueue,
       originalQueue: songs,
-      currentSong: songs[startIndex],
+      currentSong: songToPlay,
+      currentIndex: startIndex,
+      isPlaying: true,
+    });
+  },
+
+  playPlaylist: (songs: Song[], startIndex = 0) => {
+    if (songs.length === 0) return;
+
+    const { isShuffling } = get();
+
+    const finalQueue = [...songs];
+    let songToPlay = songs[startIndex];
+
+    if (isShuffling) {
+      // Shuffle lại queue
+      for (let i = finalQueue.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [finalQueue[i], finalQueue[j]] = [finalQueue[j], finalQueue[i]];
+      }
+
+      // Xác định lại chỉ số bài đang play trong danh sách đã shuffle
+      const shuffledIndex = finalQueue.findIndex(
+        (s) => s._id === songToPlay._id
+      );
+      if (shuffledIndex !== -1) {
+        startIndex = shuffledIndex;
+        songToPlay = finalQueue[startIndex];
+      } else {
+        // Nếu không tìm thấy (hiếm), lấy bài đầu
+        startIndex = 0;
+        songToPlay = finalQueue[0];
+      }
+    }
+
+    const socket = useChatStore.getState().socket;
+    if (socket.auth) {
+      socket.emit("update_activity", {
+        userId: socket.auth.userId,
+        activity: `Playing ${songToPlay.title} by ${songToPlay.artist} from playlist`,
+      });
+    }
+
+    set({
+      queue: finalQueue,
+      originalQueue: songs,
+      currentSong: songToPlay,
       currentIndex: startIndex,
       isPlaying: true,
     });
@@ -99,32 +156,8 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   playNext: () => {
     const { isRepeating, currentSong, currentIndex, queue } = get();
 
-    if (isRepeating && currentSong) {
-      // 🔁 Repeat current song ngay lập tức
-      set({
-        currentSong: currentSong,
-        isPlaying: true,
-      });
-      return;
-    }
-
-    const nextIndex = currentIndex + 1;
-    if (nextIndex < queue.length) {
-      const nextSong = queue[nextIndex];
-      const socket = useChatStore.getState().socket;
-      if (socket.auth) {
-        socket.emit("update_activity", {
-          userId: socket.auth.userId,
-          activity: `Playing ${nextSong.title} by ${nextSong.artist}`,
-        });
-      }
-      set({
-        currentSong: nextSong,
-        currentIndex: nextIndex,
-        isPlaying: true,
-      });
-    } else {
-      // Hết bài, không repeat
+    // Kiểm tra nếu queue rỗng
+    if (!queue || queue.length === 0) {
       set({ isPlaying: false });
       const socket = useChatStore.getState().socket;
       if (socket.auth) {
@@ -133,14 +166,47 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
           activity: `Idle`,
         });
       }
+      return;
     }
+
+    // Nếu isRepeating được bật, lặp lại bài hiện tại
+    if (isRepeating && currentSong) {
+      set({
+        currentSong: currentSong,
+        currentIndex: currentIndex,
+        isPlaying: true,
+      });
+      const socket = useChatStore.getState().socket;
+      if (socket.auth) {
+        socket.emit("update_activity", {
+          userId: socket.auth.userId,
+          activity: `Playing ${currentSong.title} by ${currentSong.artist}`,
+        });
+      }
+      return;
+    }
+
+    // Chuyển sang bài tiếp theo
+    const nextIndex = (currentIndex + 1) % queue.length; // Sử dụng modulo để lặp lại từ đầu
+    const nextSong = queue[nextIndex];
+    const socket = useChatStore.getState().socket;
+    if (socket.auth) {
+      socket.emit("update_activity", {
+        userId: socket.auth.userId,
+        activity: `Playing ${nextSong.title} by ${nextSong.artist}`,
+      });
+    }
+    set({
+      currentSong: nextSong,
+      currentIndex: nextIndex,
+      isPlaying: true,
+    });
   },
 
   playPrevious: () => {
     const { currentIndex, queue } = get();
     const prevIndex = currentIndex - 1;
 
-    // theres a prev song
     if (prevIndex >= 0) {
       const prevSong = queue[prevIndex];
 
@@ -158,7 +224,6 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
         isPlaying: true,
       });
     } else {
-      // no prev song
       set({ isPlaying: false });
 
       const socket = useChatStore.getState().socket;
@@ -175,7 +240,6 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
     const { isShuffling, originalQueue, currentSong } = get();
 
     if (isShuffling) {
-      // 🔁 Turn OFF shuffle: restore original queue
       const index = originalQueue.findIndex((s) => s._id === currentSong?._id);
       set({
         isShuffling: false,
@@ -183,7 +247,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
         currentIndex: index !== -1 ? index : 0,
       });
     } else {
-      // 🔀 Turn ON shuffle
+      // Shuffle originalQueue
       const shuffledQueue = [...originalQueue];
       for (let i = shuffledQueue.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -192,6 +256,8 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
           shuffledQueue[i],
         ];
       }
+
+      // Đảm bảo currentSong vẫn tồn tại trong queue đã shuffle
       const index = shuffledQueue.findIndex((s) => s._id === currentSong?._id);
       set({
         isShuffling: true,
@@ -200,9 +266,11 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
       });
     }
   },
+
   toggleRepeat: () => {
     set({ isRepeating: !get().isRepeating });
   },
+
   playSong: (songs, index) => {
     if (songs.length === 0) return;
 

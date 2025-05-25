@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 const AudioPlayer = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const prevSongRef = useRef<string | null>(null);
-  const { currentSong, isPlaying, playNext } = usePlayerStore();
+  const { currentSong, isPlaying, playNext, isRepeating } = usePlayerStore();
 
   // handle play/pause logic
   useEffect(() => {
@@ -17,12 +17,11 @@ const AudioPlayer = () => {
     const audio = audioRef.current;
 
     const handleEnded = () => {
-      if (usePlayerStore.getState().isRepeating) {
-        const audio = audioRef.current;
+      if (isRepeating) {
         if (audio) {
           audio.currentTime = 0;
           audio.play();
-          usePlayerStore.setState({ isPlaying: true }); // 🔧 Cập nhật lại state
+          usePlayerStore.setState({ isPlaying: true }); // Đảm bảo state vẫn là đang phát
         }
       } else {
         playNext();
@@ -30,25 +29,21 @@ const AudioPlayer = () => {
     };
 
     audio?.addEventListener("ended", handleEnded);
-
     return () => audio?.removeEventListener("ended", handleEnded);
-  }, [playNext]);
+  }, [playNext, isRepeating]); 
 
   useEffect(() => {
     if (!audioRef.current || !currentSong?.audioUrl) return;
 
     const audio = audioRef.current;
-
-    // Check if this is actually a new song by comparing URLs
     const isSongChange = prevSongRef.current !== currentSong.audioUrl;
 
     if (isSongChange) {
-      audio.src = currentSong.audioUrl; // Update the src with the new song URL
-      audio.currentTime = 0; // Reset playback position
+      audio.src = currentSong.audioUrl;
+      audio.currentTime = 0;
+      prevSongRef.current = currentSong.audioUrl;
 
-      prevSongRef.current = currentSong.audioUrl; // Store the current song URL for comparison
-
-      if (isPlaying) audio.play(); // Auto-play if it's already set to play
+      if (isPlaying) audio.play();
     }
   }, [currentSong, isPlaying]);
 

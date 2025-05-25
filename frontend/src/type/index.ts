@@ -44,6 +44,6 @@ export interface Playlist {
   _id: string;
   title: string;
   imageUrl?: string;
-  creator?: string;
-  songs?: string[]; // Array of song IDs or Song objects
+  creator: string | { _id: string; fullName: string };
+  songs: Song[];
 }

@@ -11,6 +11,7 @@ import NotFoundPage from "./pages/404/NotFoundPage";
 import SreachPage from "./pages/sreach/SearchPage";
 import SongPage from "./pages/songs/SongPage";
 import AllSongPage from "./pages/songs/AllSongPage";
+import PlaylistPage from "./pages/playlist/PlaylistPage";
 function App() {
   return (
     <>
@@ -32,6 +33,8 @@ function App() {
           <Route path="/albums/:albumId" element={<AlbumPage />} />
           <Route path="/songs/:id" element={<SongPage />} />
           <Route path="/songs/allsongs" element={<AllSongPage />} />
+          <Route path="/playlists/:playlistId" element={<PlaylistPage />} />
+
           <Route path="/*" element={<NotFoundPage />} />
         </Route>
       </Routes>

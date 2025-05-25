@@ -121,7 +121,8 @@ const LeftSidebar = () => {
                             {playlist.title}
                           </p>
                           <p className="text-sm text-zinc-400 truncate">
-                            Playlist • {playlist.creator || "You"}
+                            Playlist •{" "}
+                            {(playlist.creator as any)?.fullName || "You"}
                           </p>
                         </div>
                       </Link>
