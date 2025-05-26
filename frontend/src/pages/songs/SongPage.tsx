@@ -10,6 +10,7 @@ const formatDuration = (seconds: number) => {
   const remainingSeconds = seconds % 60;
   return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 };
+
 const SongPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -30,12 +31,10 @@ const SongPage = () => {
     if (id) fetchSongById(id);
   }, [id, fetchSongById]);
 
-  // Fetch all songs on mount
   useEffect(() => {
     fetchSongs();
   }, [fetchSongs]);
 
-  // ✅ Auto navigate when currentSong changes
   useEffect(() => {
     if (currentSong && currentSong._id !== id) {
       navigate(`/songs/${currentSong._id}`, { replace: true });
@@ -59,6 +58,16 @@ const SongPage = () => {
       navigate(`/songs/${song._id}`);
     }
   };
+
+  // Hàm format năm phát hành
+  const getReleaseYear = (createdAt: string | undefined) => {
+    if (!createdAt) return "Unknown";
+    const date = new Date(createdAt);
+    return date instanceof Date && !isNaN(date.getTime())
+      ? date.getFullYear()
+      : "Unknown";
+  };
+
   return (
     <div className="h-full bg-gradient-to-b from-[#5038a0]/80 via-zinc-900/80 p-6 text-white">
       <div className="flex gap-6 items-center max-w-4xl mx-auto">
@@ -73,16 +82,9 @@ const SongPage = () => {
             {song.title}
           </h1>
           <div className="flex flex-wrap items-center gap-2 mt-3 text-sm text-blue-300">
-            <span className="flex items-center gap-1">
-              {/* <img
-                src="https://i.pravatar.cc/20?u="
-                alt={song.artist}
-                className="w-5 h-5 rounded-full"
-              /> */}
-              {song.artist}
-            </span>
+            <span className="flex items-center gap-1">{song.artist}</span>
             <span>• {currentAlbum?.title || "Unknown Album"}</span>
-            <span>• {new Date(song.createdAt).getFullYear()}</span>
+            <span>• {getReleaseYear(song.createdAt)}</span>
             <span>• {formatDuration(song.duration)}</span>
           </div>
 

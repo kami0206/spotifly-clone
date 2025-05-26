@@ -80,14 +80,13 @@ export const getTrendingSongs = async (req, res, next) => {
     next(error);
   }
 };
-
 export const getSongById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    // Tìm bài hát theo id
+    // Tìm bài hát theo id mà không populate albumId
     const song = await Song.findById(id).select(
-      "_id title artist imageUrl audioUrl duration albumId shareCount"
+      "_id title artist imageUrl audioUrl duration albumId createdAt"
     );
 
     if (!song) {
@@ -99,33 +98,7 @@ export const getSongById = async (req, res, next) => {
     next(error);
   }
 };
-export const shareSong = async (req, res, next) => {
-  try {
-    const { id } = req.params;
 
-    const song = await Song.findById(id).select(
-      "_id title artist imageUrl audioUrl"
-    );
-
-    if (!song) {
-      return res.status(404).json({ message: "Song not found." });
-    }
-
-    // Optional: tăng số lượt chia sẻ
-    await Song.findByIdAndUpdate(id, { $inc: { shareCount: 1 } });
-
-    // Tạo link chia sẻ (có thể dùng domain thật của bạn)
-    const shareUrl = `https://yourmusicapp.com/song/${song._id}`;
-
-    res.json({
-      message: "Share link generated successfully.",
-      shareUrl,
-      song,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
 export const searchSongs = async (req, res, next) => {
   try {
     const { query } = req.query;

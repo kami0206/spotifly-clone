@@ -1,3 +1,4 @@
+import ContextMenu from "@/components/ContextMenu";
 import PlaylistSkeleton from "@/components/skeletons/PlaylistSkeleton";
 import { buttonVariants } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -106,26 +107,32 @@ const LeftSidebar = () => {
                     <PlaylistSkeleton />
                   ) : playlists.length > 0 ? (
                     playlists.map((playlist) => (
-                      <Link
-                        to={`/playlists/${playlist._id}`}
+                      <ContextMenu
                         key={playlist._id}
-                        className="p-2 hover:bg-zinc-800 rounded-md flex items-center gap-3 group cursor-pointer"
+                        itemType="playlist"
+                        itemId={playlist._id}
+                        itemTitle={playlist.title}
                       >
-                        <img
-                          src={playlist.imageUrl || "/default-playlist.png"}
-                          alt="Playlist img"
-                          className="size-12 rounded-md flex-shrink-0 object-cover"
-                        />
-                        <div className="flex-1 min-w-0 hidden md:block">
-                          <p className="font-medium truncate">
-                            {playlist.title}
-                          </p>
-                          <p className="text-sm text-zinc-400 truncate">
-                            Playlist •{" "}
-                            {(playlist.creator as any)?.fullName || "You"}
-                          </p>
-                        </div>
-                      </Link>
+                        <Link
+                          to={`/playlists/${playlist._id}`}
+                          className="p-2 hover:bg-zinc-800 rounded-md flex items-center gap-3 group cursor-pointer"
+                        >
+                          <img
+                            src={playlist.imageUrl || "/default-playlist.png"}
+                            alt="Playlist img"
+                            className="size-12 rounded-md flex-shrink-0 object-cover"
+                          />
+                          <div className="flex-1 min-w-0 hidden md:block">
+                            <p className="font-medium truncate">
+                              {playlist.title}
+                            </p>
+                            <p className="text-sm text-zinc-400 truncate">
+                              Playlist •{" "}
+                              {(playlist.creator as any)?.fullName || "You"}
+                            </p>
+                          </div>
+                        </Link>
+                      </ContextMenu>
                     ))
                   ) : (
                     <p className="text-zinc-400 text-sm">No playlists yet.</p>
@@ -147,23 +154,29 @@ const LeftSidebar = () => {
                   <PlaylistSkeleton />
                 ) : allAlbums.length > 0 ? (
                   allAlbums.map((album) => (
-                    <Link
-                      to={`/albums/${album._id}`}
+                    <ContextMenu
                       key={album._id}
-                      className="p-2 hover:bg-zinc-800 rounded-md flex items-center gap-3 group cursor-pointer"
+                      itemType="album"
+                      itemId={album._id}
+                      itemTitle={album.title}
                     >
-                      <img
-                        src={album.imageUrl}
-                        alt="Album img"
-                        className="size-12 rounded-md flex-shrink-0 object-cover"
-                      />
-                      <div className="flex-1 min-w-0 hidden md:block">
-                        <p className="font-medium truncate">{album.title}</p>
-                        <p className="text-sm text-zinc-400 truncate">
-                          Album • {album.artist}
-                        </p>
-                      </div>
-                    </Link>
+                      <Link
+                        to={`/albums/${album._id}`}
+                        className="p-2 hover:bg-zinc-800 rounded-md flex items-center gap-3 group cursor-pointer"
+                      >
+                        <img
+                          src={album.imageUrl}
+                          alt="Album img"
+                          className="size-12 rounded-md flex-shrink-0 object-cover"
+                        />
+                        <div className="flex-1 min-w-0 hidden md:block">
+                          <p className="font-medium truncate">{album.title}</p>
+                          <p className="text-sm text-zinc-400 truncate">
+                            Album • {album.artist}
+                          </p>
+                        </div>
+                      </Link>
+                    </ContextMenu>
                   ))
                 ) : (
                   <p className="text-zinc-400 text-sm">No albums available.</p>

@@ -66,18 +66,23 @@ export const useMusicStore = create<MusicStore>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await axiosInstance.get(`/songs/${id}`);
+      console.log("Response data from /songs/${id}:", response.data); // Debug
       if (response?.data) {
         const song = response.data;
         set({ currentSongInfo: song });
-        if (song.albumId) {
+        // Kiểm tra nếu albumId đã được populate
+        if (
+          song.albumId &&
+          typeof song.albumId === "object" &&
+          song.albumId._id
+        ) {
+          set({ currentAlbum: song.albumId }); // Sử dụng dữ liệu đã populate
+        } else if (song.albumId && typeof song.albumId === "string") {
+          // Nếu albumId là chuỗi (chưa populate), gọi API để lấy album
           const albumResponse = await axiosInstance.get(
             `/albums/${song.albumId}`
           );
-          if (albumResponse?.data) {
-            set({ currentAlbum: albumResponse.data });
-          } else {
-            set({ currentAlbum: null });
-          }
+          set({ currentAlbum: albumResponse?.data || null });
         } else {
           set({ currentAlbum: null });
         }
@@ -202,7 +207,7 @@ export const useMusicStore = create<MusicStore>((set) => ({
     try {
       const response = await axiosInstance.get("/playlists");
       if (response?.data) {
-        set({ playlists: response.data });
+        set({ playlists: response.data }); // Overwrites existing state, removing duplicates
       } else {
         throw new Error("Không nhận được dữ liệu từ API");
       }
@@ -222,6 +227,7 @@ export const useMusicStore = create<MusicStore>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await axiosInstance.get(`/playlists/${id}`);
+      console.log("API Response:", response.data); // Kiểm tra dữ liệu
       if (response?.data) {
         set({ currentPlaylist: response.data });
       } else {
@@ -238,7 +244,7 @@ export const useMusicStore = create<MusicStore>((set) => ({
   deletePlaylist: async (id) => {
     set({ isLoading: true, error: null });
     try {
-      await axiosInstance.delete(`/admin/playlists/${id}`);
+      await axiosInstance.delete(`/playlists/${id}`);
       set((state) => ({
         playlists: state.playlists.filter((playlist) => playlist._id !== id),
       }));
@@ -335,12 +341,14 @@ export const useMusicStore = create<MusicStore>((set) => ({
       const response = await axiosInstance.post("/playlists/cr", {
         title,
         imageUrl, // Include imageUrl to allow manual override
-        songIds,
+        songIds: [...new Set(songIds)],
       });
       if (response?.data) {
         const newPlaylist = response.data as Playlist;
         set((state) => ({
-          playlists: [...state.playlists, newPlaylist],
+          playlists: state.playlists
+            .filter((p) => p._id !== newPlaylist._id) // Remove existing instance
+            .concat(newPlaylist), // Add updated instance
         }));
         toast.success("Tạo/cập nhật playlist thành công");
         return newPlaylist;

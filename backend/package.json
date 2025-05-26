@@ -29,6 +29,7 @@
     "request-promise": "^4.2.6",
     "socket.io": "^4.8.1",
     "spotify-clone": "file:..",
+    "svix": "^1.66.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "tough-cookie": "^5.1.2",

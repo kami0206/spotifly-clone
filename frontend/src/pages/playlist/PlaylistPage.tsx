@@ -6,6 +6,7 @@ import { Clock, Pause, Play } from "lucide-react";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
 import { useParams } from "react-router-dom";
+import ContextMenu from "@/components/ContextMenu";
 
 export const formatDuration = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);
@@ -112,43 +113,51 @@ const PlaylistPage = () => {
                   {currentPlaylist.songs.map((song, index) => {
                     const isCurrentSong = currentSong?._id === song._id;
                     return (
-                      <div
+                      <ContextMenu
                         key={song._id}
-                        onClick={() => handlePlaySong(index)}
-                        className="grid grid-cols-[16px_4fr_2fr_1fr] gap-4 px-4 py-2 text-sm text-zinc-400 hover:bg-white/5 rounded-md group cursor-pointer"
+                        itemType="song"
+                        itemId={song._id}
+                        itemTitle={song.title}
+                        isInPlaylist={true}
+                        playlistId={currentPlaylist._id}
                       >
-                        <div className="flex items-center justify-center">
-                          {isCurrentSong && isPlaying ? (
-                            <div className="size-4 text-green-500">♫</div>
-                          ) : (
-                            <span className="group-hover:hidden">
-                              {index + 1}
-                            </span>
-                          )}
-                          {!isCurrentSong && (
-                            <Play className="h-4 w-4 hidden group-hover:block" />
-                          )}
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={song.imageUrl || "/placeholder-image.png"}
-                            alt={song.title}
-                            className="size-10"
-                          />
-                          <div>
-                            <div className="font-medium text-white">
-                              {song.title}
+                        <div
+                          onClick={() => handlePlaySong(index)}
+                          className="grid grid-cols-[16px_4fr_2fr_1fr] gap-4 px-4 py-2 text-sm text-zinc-400 hover:bg-white/5 rounded-md group cursor-pointer"
+                        >
+                          <div className="flex items-center justify-center">
+                            {isCurrentSong && isPlaying ? (
+                              <div className="size-4 text-green-500">♫</div>
+                            ) : (
+                              <span className="group-hover:hidden">
+                                {index + 1}
+                              </span>
+                            )}
+                            {!isCurrentSong && (
+                              <Play className="h-4 w-4 hidden group-hover:block" />
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={song.imageUrl || "/placeholder-image.png"}
+                              alt={song.title}
+                              className="size-10"
+                            />
+                            <div>
+                              <div className="font-medium text-white">
+                                {song.title}
+                              </div>
+                              <div>{song.artist}</div>
                             </div>
-                            <div>{song.artist}</div>
+                          </div>
+                          <div className="flex items-center">
+                            {song.createdAt.split("T")[0]}
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <span>{formatDuration(song.duration)}</span>
                           </div>
                         </div>
-                        <div className="flex items-center">
-                          {song.createdAt.split("T")[0]}
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <span>{formatDuration(song.duration)}</span>
-                        </div>
-                      </div>
+                      </ContextMenu>
                     );
                   })}
                 </div>

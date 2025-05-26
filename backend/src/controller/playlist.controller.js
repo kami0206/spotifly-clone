@@ -48,35 +48,56 @@ export const createOrUpdatePlaylist = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "Người dùng không tìm thấy" });
     }
+
     const { title, imageUrl, songIds = [] } = req.body;
+
+    // Loại bỏ trùng lặp trong songIds từ request
+    const uniqueSongIds = [...new Set(songIds)];
+
+    // Kiểm tra tính hợp lệ của songIds
+    const validSongs = await Song.find({ _id: { $in: uniqueSongIds } });
+    if (validSongs.length !== uniqueSongIds.length) {
+      return res.status(400).json({ message: "Một số bài hát không hợp lệ" });
+    }
+
     let playlist = await Playlist.findOne({ title, creator: user._id });
     if (!playlist) {
+      // Tạo playlist mới
       playlist = new Playlist({
         title,
         imageUrl:
           imageUrl ||
-          (songIds.length > 0
-            ? (await Song.findById(songIds[0])).imageUrl
+          (uniqueSongIds.length > 0
+            ? (await Song.findById(uniqueSongIds[0])).imageUrl
             : null),
         creator: user._id,
-        songs: [],
+        songs: uniqueSongIds,
       });
+    } else {
+      // Cập nhật playlist hiện có
+      // Loại bỏ các songId đã tồn tại trong playlist
+      const existingSongIds = playlist.songs.map((id) => id.toString());
+      const newSongIds = uniqueSongIds.filter(
+        (id) => !existingSongIds.includes(id.toString())
+      );
+
+      // Chỉ thêm các bài hát mới
+      if (newSongIds.length > 0) {
+        playlist.songs = [...new Set([...playlist.songs, ...newSongIds])];
+      }
     }
-    if (songIds.length > 0) {
-      const validSongs = await Song.find({ _id: { $in: songIds } });
-      playlist.songs = [
-        ...new Set([...playlist.songs, ...validSongs.map((s) => s._id)]),
-      ];
-    }
+
     await playlist.save();
     await playlist.populate({
       path: "songs",
       select: "title artist imageUrl duration albumId audioUrl createdAt",
       populate: { path: "albumId", select: "title" },
     });
-    await playlist.populate("creator", "fullName"); // Thêm populate cho creator
+    await playlist.populate("creator", "fullName");
+
     res.status(201).json(playlist);
   } catch (error) {
+    console.error("Lỗi khi tạo/cập nhật playlist:", error);
     res.status(500).json({ message: "Lỗi khi tạo/cập nhật playlist", error });
   }
 };
