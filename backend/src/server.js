@@ -44,22 +44,22 @@ app.use(
       fileSize: 10 * 1024 * 1024, //10MB max file size
     },
   })
-); //
+);
 
-// const tempDir = path.join(process.cwd(), "tmp");
-// cron.schedule("0 * * * *", () => {
-//   if (fs.existsSync(tempDir)) {
-//     fs.readdir(tempDir, (err, files) => {
-//       if (err) {
-//         console.log("error", err);
-//         return;
-//       }
-//       for (const file of files) {
-//         fs.unlink(path.join(tempDir, file), (err) => {});
-//       }
-//     });
-//   }
-// });
+const tempDir = path.join(process.cwd(), "tmp");
+cron.schedule("0 * * * *", () => {
+  if (fs.existsSync(tempDir)) {
+    fs.readdir(tempDir, (err, files) => {
+      if (err) {
+        console.log("error", err);
+        return;
+      }
+      for (const file of files) {
+        fs.unlink(path.join(tempDir, file), (err) => {});
+      }
+    });
+  }
+});
 
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
