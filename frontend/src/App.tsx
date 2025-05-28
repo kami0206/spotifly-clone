@@ -57,8 +57,8 @@ import NotFoundPage from "./pages/404/NotFoundPage";
 import SongPage from "./pages/songs/SongPage";
 import AllSongPage from "./pages/songs/AllSongPage";
 import PlaylistPage from "./pages/playlist/PlaylistPage";
-import SignInOAuth from "./components/SignInFrom";
 import SearchPage from "./pages/sreach/SearchPage";
+import SignInForm from "./components/SignInFrom";
 
 function App() {
   return (
@@ -69,13 +69,12 @@ function App() {
           element={
             <AuthenticateWithRedirectCallback
               signInFallbackRedirectUrl="/auth-callback"
-              signUpFallbackRedirectUrl="/auth-callback"
             />
           }
         />
         <Route path="/auth-callback" element={<AuthCallbackPage />} />
         <Route path="/admin" element={<AdminPage />} />
-        <Route path="/signin" element={<SignInOAuth />} />
+        <Route path="/signin" element={<SignInForm  onClose={() => {}}/>} />
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/chat" element={<ChatPage />} />

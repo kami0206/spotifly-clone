@@ -240,7 +240,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
   };
 
   return (
-    <div className="relative flex flex-col gap-6 p-8 max-w-sm w-full bg-zinc-800 shadow-lg rounded-lg border-l-4 border-gradient-to-r from-cyan-400 to-purple-500">
+    <div className="relative flex flex-col gap-6 p-8 max-w-sm w-full bg-zinc-800 shadow-lg rounded-lg border-l-4 border-gradient-to-r from-green-400 to-blue-500">
       {/* Close Button */}
       <button
         onClick={handleClose}
@@ -268,7 +268,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
               placeholder="Username or Email"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full h-12 pl-4 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-cyan-400"
+              className="w-full h-12 pl-4 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-green-400"
             />
           </div>
           <div className="relative">
@@ -277,7 +277,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full h-12 pl-4 pr-10 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-cyan-400"
+              className="w-full h-12 pl-4 pr-10 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-green-400"
             />
             <button
               type="button"
@@ -303,7 +303,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
           <Button
             onClick={signInWithPassword}
             disabled={isLoading}
-            className="w-full h-12 bg-gradient-to-r from-cyan-400 to-purple-500 text-white font-semibold rounded-full hover:from-cyan-500 hover:to-purple-600 transition-all"
+            className="w-full h-12 bg-gradient-to-r from-green-400 to-blue-500 text-white font-semibold rounded-full hover:from-green-500 hover:to-blue-600 transition-all"
           >
             {isLoading ? "Signing in..." : "Sign In"}
           </Button>
@@ -324,7 +324,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
                 resetForm();
                 setIsSignIn(false);
               }}
-              className="text-cyan-400 text-sm hover:underline"
+              className="text-green-400 text-sm hover:underline"
             >
               Sign Up
             </button>
@@ -340,7 +340,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
                   placeholder="Email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-12 pl-4 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-cyan-400"
+                  className="w-full h-12 pl-4 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-green-400"
                 />
               </div>
               {error && (
@@ -349,7 +349,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
               <Button
                 onClick={initiatePasswordReset}
                 disabled={isLoading}
-                className="w-full h-12 bg-gradient-to-r from-cyan-400 to-purple-500 text-white font-semibold rounded-full hover:from-cyan-500 hover:to-purple-600 transition-all"
+                className="w-full h-12 bg-gradient-to-r from-green-400 to-blue-500 text-white font-semibold rounded-full hover:from-green-500 hover:to-blue-600 transition-all"
               >
                 {isLoading ? "Sending code..." : "Send Reset Code"}
               </Button>
@@ -362,7 +362,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
                   placeholder="Enter verification code"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  className="w-full h-12 pl-4 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-cyan-400"
+                  className="w-full h-12 pl-4 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-green-400"
                 />
               </div>
               <div className="relative">
@@ -371,7 +371,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
                   placeholder="New Password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full h-12 pl-4 pr-10 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-cyan-400"
+                  className="w-full h-12 pl-4 pr-10 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-green-400"
                 />
                 <button
                   type="button"
@@ -390,7 +390,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
               <Button
                 onClick={resetPassword}
                 disabled={isLoading}
-                className="w-full h-12 bg-gradient-to-r from-cyan-400 to-purple-500 text-white font-semibold rounded-full hover:from-cyan-500 hover:to-purple-600 transition-all"
+                className="w-full h-12 bg-gradient-to-r from-green-400 to-blue-500 text-white font-semibold rounded-full hover:from-green-500 hover:to-blue-600 transition-all"
               >
                 {isLoading ? "Resetting..." : "Reset Password"}
               </Button>
@@ -407,7 +407,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
             <span className="text-gray-400">Or </span>
             <button
               onClick={resetForm}
-              className="text-cyan-400 text-sm hover:underline"
+              className="text-green-400 text-sm hover:underline"
             >
               Sign In
             </button>
@@ -421,7 +421,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
               placeholder="First Name"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              className="w-full h-12 pl-4 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-cyan-400"
+              className="w-full h-12 pl-4 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-green-400"
             />
           </div>
           <div className="relative">
@@ -430,7 +430,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
               placeholder="Last Name"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              className="w-full h-12 pl-4 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-cyan-400"
+              className="w-full h-12 pl-4 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-green-400"
             />
           </div>
           <div className="relative">
@@ -439,7 +439,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
               placeholder="Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full h-12 pl-4 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-cyan-400"
+              className="w-full h-12 pl-4 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-green-400"
             />
           </div>
           <div className="relative">
@@ -448,7 +448,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full h-12 pl-4 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-cyan-400"
+              className="w-full h-12 pl-4 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-green-400"
             />
           </div>
           <div className="relative">
@@ -457,7 +457,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full h-12 pl-4 pr-10 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-cyan-400"
+              className="w-full h-12 pl-4 pr-10 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-green-400"
             />
             <button
               type="button"
@@ -473,7 +473,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
             <Button
               onClick={signUpWithEmailAndPassword}
               disabled={isLoading}
-              className="w-full h-12 bg-gradient-to-r from-cyan-400 to-purple-500 text-white font-semibold rounded-full hover:from-cyan-500 hover:to-purple-600 transition-all"
+              className="w-full h-12 bg-gradient-to-r from-green-400 to-blue-500 text-white font-semibold rounded-full hover:from-green-500 hover:to-blue-600 transition-all"
             >
               {isLoading ? "Signing up..." : "Sign Up"}
             </Button>
@@ -485,7 +485,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
                   placeholder="Enter verification code"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  className="w-full h-12 pl-4 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-cyan-400"
+                  className="w-full h-12 pl-4 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-green-400"
                 />
               </div>
               {error && (
@@ -494,7 +494,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
               <Button
                 onClick={verifyCodeAndSignUp}
                 disabled={isLoading}
-                className="w-full h-12 bg-gradient-to-r from-cyan-400 to-purple-500 text-white font-semibold rounded-full hover:from-cyan-500 hover:to-purple-600 transition-all"
+                className="w-full h-12 bg-gradient-to-r from-green-400 to-blue-500 text-white font-semibold rounded-full hover:from-green-500 hover:to-blue-600 transition-all"
               >
                 {isLoading ? "Verifying..." : "Verify and Complete"}
               </Button>
@@ -504,7 +504,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
             <span className="text-gray-400">Or </span>
             <button
               onClick={resetForm}
-              className="text-cyan-400 text-sm hover:underline"
+              className="text-green-400 text-sm hover:underline"
             >
               Sign In
             </button>
