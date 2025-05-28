@@ -57,7 +57,7 @@ import NotFoundPage from "./pages/404/NotFoundPage";
 import SongPage from "./pages/songs/SongPage";
 import AllSongPage from "./pages/songs/AllSongPage";
 import PlaylistPage from "./pages/playlist/PlaylistPage";
-import SignInOAuth from "./components/SignInSignOut";
+import SignInOAuth from "./components/SignInFrom";
 import SearchPage from "./pages/sreach/SearchPage";
 
 function App() {

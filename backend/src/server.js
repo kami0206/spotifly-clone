@@ -9,7 +9,6 @@ import cors from "cors";
 import { createServer } from "http";
 import { initializeSocket } from "./lib/socket.js";
 import { connectDB } from "./lib/db.js";
-import webhookRoute from "./lib/webhook.js";
 
 import userRoutes from "./routers/user.route.js";
 import adminRoutes from "./routers/admin.route.js";
@@ -62,7 +61,6 @@ app.use(
 //   }
 // });
 
-app.use("/api", webhookRoute);
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/auth", authRoutes);
