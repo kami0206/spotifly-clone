@@ -240,7 +240,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
   };
 
   return (
-    <div className="relative flex flex-col gap-6 p-8 max-w-sm w-full bg-zinc-800 shadow-lg rounded-lg border-l-4 border-gradient-to-r from-green-400 to-blue-500">
+    <div className="relative flex flex-col gap-6 p-8 max-w-sm w-full bg-zinc-800 shadow-lg rounded-lg border-l-4 border-gradient-to-r from-green-400 to-teal-500">
       {/* Close Button */}
       <button
         onClick={handleClose}
@@ -303,7 +303,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
           <Button
             onClick={signInWithPassword}
             disabled={isLoading}
-            className="w-full h-12 bg-gradient-to-r from-green-400 to-blue-500 text-white font-semibold rounded-full hover:from-green-500 hover:to-blue-600 transition-all"
+            className="w-full h-12 bg-gradient-to-r from-green-400 to-teal-500 text-white font-semibold rounded-full hover:from-green-500 hover:to-teal-600 transition-all"
           >
             {isLoading ? "Signing in..." : "Sign In"}
           </Button>
@@ -349,7 +349,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
               <Button
                 onClick={initiatePasswordReset}
                 disabled={isLoading}
-                className="w-full h-12 bg-gradient-to-r from-green-400 to-blue-500 text-white font-semibold rounded-full hover:from-green-500 hover:to-blue-600 transition-all"
+                className="w-full h-12 bg-gradient-to-r from-green-400 to-teal-500 text-white font-semibold rounded-full hover:from-green-500 hover:to-teal-600 transition-all"
               >
                 {isLoading ? "Sending code..." : "Send Reset Code"}
               </Button>
@@ -390,7 +390,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
               <Button
                 onClick={resetPassword}
                 disabled={isLoading}
-                className="w-full h-12 bg-gradient-to-r from-green-400 to-blue-500 text-white font-semibold rounded-full hover:from-green-500 hover:to-blue-600 transition-all"
+                className="w-full h-12 bg-gradient-to-r from-green-400 to-teal-500 text-white font-semibold rounded-full hover:from-green-500 hover:to-teal-600 transition-all"
               >
                 {isLoading ? "Resetting..." : "Reset Password"}
               </Button>
@@ -473,7 +473,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
             <Button
               onClick={signUpWithEmailAndPassword}
               disabled={isLoading}
-              className="w-full h-12 bg-gradient-to-r from-green-400 to-blue-500 text-white font-semibold rounded-full hover:from-green-500 hover:to-blue-600 transition-all"
+              className="w-full h-12 bg-gradient-to-r from-green-400 to-teal-500 text-white font-semibold rounded-full hover:from-green-500 hover:to-teal-600 transition-all"
             >
               {isLoading ? "Signing up..." : "Sign Up"}
             </Button>
@@ -494,7 +494,7 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
               <Button
                 onClick={verifyCodeAndSignUp}
                 disabled={isLoading}
-                className="w-full h-12 bg-gradient-to-r from-green-400 to-blue-500 text-white font-semibold rounded-full hover:from-green-500 hover:to-blue-600 transition-all"
+                className="w-full h-12 bg-gradient-to-r from-green-400 to-teal-500 text-white font-semibold rounded-full hover:from-green-500 hover:to-teal-600 transition-all"
               >
                 {isLoading ? "Verifying..." : "Verify and Complete"}
               </Button>
