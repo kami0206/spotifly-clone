@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
 import ContextMenu from "@/components/ContextMenu";
+import NewPlaylistModal from "@/components/NewPlaylistModal";
 import PlaylistSkeleton from "@/components/skeletons/PlaylistSkeleton";
 import { buttonVariants } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -8,16 +8,16 @@ import { cn } from "@/lib/utils";
 import { useMusicStore } from "@/stores/useMusicStore";
 import { SignedIn, useAuth } from "@clerk/clerk-react";
 import {
+  Album,
   HomeIcon,
   Library,
   MessageCircle,
-  Search,
-  Album,
   Music,
+  Search,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
-import NewPlaylistModal from "@/components/NewPlaylistModal";
+import { Link } from "react-router-dom";
 
 const LeftSidebar = () => {
   const {
