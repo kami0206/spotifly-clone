@@ -160,8 +160,7 @@ const LeftSidebar = () => {
                         >
                           <img
                             src={
-                              playlist.imageUrl ||
-                              "/public/cover-images/default.jpg"
+                              playlist.imageUrl || "./cover-images/default.jpg"
                             }
                             alt="Playlist img"
                             className="size-12 rounded-md flex-shrink-0 object-cover"
