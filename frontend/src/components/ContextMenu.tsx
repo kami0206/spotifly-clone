@@ -8,6 +8,7 @@ import {
 import { toast } from "react-hot-toast";
 import { useMusicStore } from "@/stores/useMusicStore";
 import NewPlaylistModal from "./NewPlaylistModal";
+import EditPlaylistModal from "./Edit";
 
 interface ContextMenuProps {
   itemType: "playlist" | "song" | "album";
@@ -26,7 +27,9 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   children,
 }) => {
   const [open, setOpen] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [newPlaylistModalOpen, setNewPlaylistModalOpen] = useState(false);
+  const [editPlaylistModalOpen, setEditPlaylistModalOpen] = useState(false);
+
   const {
     playlists,
     removeSongsFromPlaylist,
@@ -34,16 +37,18 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     deletePlaylist,
   } = useMusicStore();
 
+  const playlistToEdit = playlists.find((p) => p._id === itemId);
+
   const handleRemoveFromPlaylist = async () => {
     if (itemType === "song" && isInPlaylist) {
       try {
         const pid = playlistId || useMusicStore.getState().currentPlaylist?._id;
-        if (!pid) throw new Error("Không tìm thấy playlist");
+        if (!pid) throw new Error("Playlist not found");
         await removeSongsFromPlaylist(pid, [itemId]);
-        toast.success("Xóa bài hát khỏi danh sách phát thành công");
+        toast.success("Successfully removed song from playlist");
       } catch (error) {
         console.error("Error in handleRemoveFromPlaylist:", error);
-        toast.error("Lỗi khi xóa bài hát");
+        toast.error("Error removing song from playlist");
       }
     }
     setOpen(false);
@@ -51,44 +56,93 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 
   const handleAddToPlaylist = async (playlistId?: string) => {
     if (!playlistId) {
-      // ✅ Đóng dropdown trước khi mở modal
       setOpen(false);
-      setModalOpen(true);
+      setNewPlaylistModalOpen(true);
     } else {
       const playlist = playlists.find((p) => p._id === playlistId);
       if (playlist) {
         const existingSongIds = [...new Set(playlist.songs.map((s) => s._id))];
         if (existingSongIds.includes(itemId)) {
-          toast.error("Bài hát đã có trong playlist này");
+          toast.error("Song already exists in this playlist");
           return;
         }
+        const formData = new FormData();
+        formData.append("title", playlist.title);
+        formData.append("description", playlist.description || "");
+        formData.append(
+          "songIds",
+          JSON.stringify([...existingSongIds, itemId])
+        );
+        formData.append("playlistId", playlist._id);
+
         try {
-          await createOrUpdatePlaylist(playlist.title, playlist.imageUrl, [
-            ...existingSongIds,
-            itemId,
-          ]);
-          toast.success("Thêm vào playlist thành công");
+          await createOrUpdatePlaylist(formData, playlist._id);
+          toast.success("Successfully added to playlist");
         } catch (error) {
           console.error("Error in handleAddToPlaylist:", error);
-          toast.error("Lỗi khi thêm bài hát");
+          toast.error("Error adding song to playlist");
         }
       }
       setOpen(false);
     }
   };
 
-  const handleCreatePlaylist = async (title: string) => {
+  const handleCreatePlaylist = async (
+    title: string,
+    description: string,
+    imageFile?: File
+  ) => {
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("description", description);
+    if (imageFile) {
+      formData.append("imageFile", imageFile);
+    }
+    formData.append("songIds", JSON.stringify([itemId]));
+
     try {
-      console.log("Calling createOrUpdatePlaylist with:", title, itemId);
-      await createOrUpdatePlaylist(title, undefined, [itemId]);
-      toast.success("Tạo playlist mới thành công");
+      await createOrUpdatePlaylist(formData);
+      toast.success("New playlist created successfully");
     } catch (error) {
       console.error("Error in handleCreatePlaylist:", error);
-      toast.error("Lỗi khi tạo playlist");
+      toast.error("Error creating playlist");
       throw error;
     } finally {
-      console.log("Closing modal and context menu");
-      setModalOpen(false);
+      setNewPlaylistModalOpen(false);
+      setOpen(false);
+    }
+  };
+
+  const handleUpdatePlaylist = async (
+    title: string,
+    description: string,
+    imageFile?: File
+  ) => {
+    if (!playlistToEdit) {
+      toast.error("Playlist does not exist");
+      return;
+    }
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("description", description);
+    if (imageFile) {
+      formData.append("imageFile", imageFile);
+    }
+    formData.append(
+      "songIds",
+      JSON.stringify(playlistToEdit.songs.map((s) => s._id))
+    );
+    formData.append("playlistId", playlistToEdit._id);
+
+    try {
+      await createOrUpdatePlaylist(formData, playlistToEdit._id);
+      toast.success("Playlist updated successfully");
+    } catch (error) {
+      console.error("Error in handleUpdatePlaylist:", error);
+      toast.error("Error updating playlist");
+      throw error;
+    } finally {
+      setEditPlaylistModalOpen(false);
       setOpen(false);
     }
   };
@@ -112,11 +166,11 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     navigator.clipboard
       .writeText(fullUrl)
       .then(() => {
-        toast.success("Đã sao chép liên kết!");
+        toast.success("Link copied to clipboard!");
       })
       .catch((err) => {
-        console.error("Lỗi khi sao chép vào clipboard:", err);
-        toast.error("Lỗi khi chia sẻ");
+        console.error("Error copying to clipboard:", err);
+        toast.error("Error sharing");
       });
     setOpen(false);
   };
@@ -125,10 +179,10 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     if (itemType === "playlist") {
       try {
         await deletePlaylist(itemId);
-        toast.success("Xóa playlist thành công");
+        toast.success("Playlist deleted successfully");
       } catch (error) {
         console.error("Error in handleDeletePlaylist:", error);
-        toast.error("Lỗi khi xóa playlist");
+        toast.error("Error deleting playlist");
       }
     }
     setOpen(false);
@@ -162,18 +216,29 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-48 p-1 bg-gray-800 border border-gray-600 shadow-lg rounded-md text-white">
           {itemType === "playlist" && (
-            <DropdownMenuItem
-              onClick={handleDeletePlaylist}
-              className="text-red-400 hover:bg-gray-700"
-            >
-              Xóa playlist
-            </DropdownMenuItem>
+            <>
+              <DropdownMenuItem
+                onClick={() => {
+                  setEditPlaylistModalOpen(true);
+                  setOpen(false);
+                }}
+                className="hover:bg-gray-700"
+              >
+                Edit playlist
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handleDeletePlaylist}
+                className="text-red-400 hover:bg-gray-700"
+              >
+                Delete playlist
+              </DropdownMenuItem>
+            </>
           )}
           <DropdownMenuItem
             onClick={handleShare}
             className="hover:bg-gray-700 text-blue-400"
           >
-            Chia sẻ
+            Share
           </DropdownMenuItem>
           {itemType === "song" && (
             <>
@@ -182,14 +247,14 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
                   onClick={handleRemoveFromPlaylist}
                   className="text-red-400 hover:bg-gray-700"
                 >
-                  Xóa khỏi playlist
+                  Remove from playlist
                 </DropdownMenuItem>
               )}
               <DropdownMenuItem
                 onClick={() => handleAddToPlaylist()}
                 className="hover:bg-gray-700"
               >
-                Thêm vào danh sách phát mới
+                Add to new playlist
               </DropdownMenuItem>
               {playlists.map((playlist) => (
                 <DropdownMenuItem
@@ -197,7 +262,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
                   onClick={() => handleAddToPlaylist(playlist._id)}
                   className="hover:bg-gray-700"
                 >
-                  Thêm vào {playlist.title}
+                  Add to {playlist.title}
                 </DropdownMenuItem>
               ))}
             </>
@@ -205,12 +270,22 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Modal */}
       {itemType === "song" && (
         <NewPlaylistModal
-          open={modalOpen}
-          onClose={() => setModalOpen(false)}
+          open={newPlaylistModalOpen}
+          onClose={() => setNewPlaylistModalOpen(false)}
           onCreate={handleCreatePlaylist}
+        />
+      )}
+
+      {itemType === "playlist" && playlistToEdit && (
+        <EditPlaylistModal
+          open={editPlaylistModalOpen}
+          onClose={() => setEditPlaylistModalOpen(false)}
+          onSave={handleUpdatePlaylist}
+          initialTitle={playlistToEdit.title}
+          initialDescription={playlistToEdit.description || ""}
+          initialImageUrl={playlistToEdit.imageUrl || ""}
         />
       )}
     </>

@@ -46,4 +46,5 @@ export interface Playlist {
   imageUrl?: string;
   creator: string | { _id: string; fullName: string };
   songs: Song[];
+  description?: string; // Add this field here
 }

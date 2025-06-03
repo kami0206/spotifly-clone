@@ -10,24 +10,30 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-hot-toast";
 
-interface NewPlaylistModalProps {
+interface EditPlaylistModalProps {
   open: boolean;
   onClose: () => void;
-  onCreate: (
+  onSave: (
     title: string,
     description: string,
     imageFile?: File
   ) => Promise<void>;
+  initialTitle: string;
+  initialDescription: string;
+  initialImageUrl: string;
 }
 
-const NewPlaylistModal: React.FC<NewPlaylistModalProps> = ({
+const EditPlaylistModal: React.FC<EditPlaylistModalProps> = ({
   open,
   onClose,
-  onCreate,
+  onSave,
+  initialTitle,
+  initialDescription,
+  initialImageUrl,
 }) => {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [imagePreview, setImagePreview] = useState("");
+  const [title, setTitle] = useState(initialTitle);
+  const [description, setDescription] = useState(initialDescription);
+  const [imagePreview, setImagePreview] = useState(initialImageUrl);
   const [imageFile, setImageFile] = useState<File | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -35,12 +41,12 @@ const NewPlaylistModal: React.FC<NewPlaylistModalProps> = ({
 
   useEffect(() => {
     if (open) {
-      setTitle("");
-      setDescription("");
-      setImagePreview("");
+      setTitle(initialTitle);
+      setDescription(initialDescription);
+      setImagePreview(initialImageUrl);
       setImageFile(undefined);
     }
-  }, [open]);
+  }, [open, initialTitle, initialDescription, initialImageUrl]);
 
   const handleImageClick = () => {
     if (!isSubmitting) fileInputRef.current?.click();
@@ -54,18 +60,18 @@ const NewPlaylistModal: React.FC<NewPlaylistModalProps> = ({
     }
   };
 
-  const handleCreate = async () => {
+  const handleSave = async () => {
     if (!title.trim()) {
       toast.error("Playlist title cannot be empty");
       return;
     }
     setIsSubmitting(true);
     try {
-      await onCreate(title, description, imageFile);
-      toast.success("Playlist created successfully");
+      await onSave(title, description, imageFile);
+      toast.success("Playlist updated successfully");
       onClose();
     } catch {
-      toast.error("Error creating playlist");
+      toast.error("Error updating playlist");
     } finally {
       setIsSubmitting(false);
     }
@@ -79,9 +85,7 @@ const NewPlaylistModal: React.FC<NewPlaylistModalProps> = ({
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
       <DialogContent className="bg-zinc-900 text-white max-w-md rounded-xl">
         <DialogHeader>
-          <DialogTitle className="text-lg font-bold">
-            Create New Playlist
-          </DialogTitle>
+          <DialogTitle className="text-lg font-bold">Edit Playlist</DialogTitle>
         </DialogHeader>
 
         <div className="flex gap-4">
@@ -128,11 +132,11 @@ const NewPlaylistModal: React.FC<NewPlaylistModalProps> = ({
 
         <DialogFooter className="mt-4">
           <Button
-            onClick={handleCreate}
+            onClick={handleSave}
             className="bg-green-600 hover:bg-green-700 text-white font-semibold rounded-full px-6"
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Creating..." : "Create"}
+            {isSubmitting ? "Saving..." : "Save"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -140,4 +144,4 @@ const NewPlaylistModal: React.FC<NewPlaylistModalProps> = ({
   );
 };
 
-export default NewPlaylistModal;
+export default EditPlaylistModal;

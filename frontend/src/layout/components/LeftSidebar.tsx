@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import ContextMenu from "@/components/ContextMenu";
 import PlaylistSkeleton from "@/components/skeletons/PlaylistSkeleton";
 import { buttonVariants } from "@/components/ui/button";
@@ -14,13 +15,22 @@ import {
   Album,
   Music,
 } from "lucide-react";
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "react-hot-toast";
+import NewPlaylistModal from "@/components/NewPlaylistModal";
 
 const LeftSidebar = () => {
-  const { allAlbums, playlists, fetchAlbums, fetchPlaylists, isLoading } =
-    useMusicStore();
+  const {
+    allAlbums,
+    playlists,
+    fetchAlbums,
+    fetchPlaylists,
+    isLoading,
+    createOrUpdatePlaylist,
+  } = useMusicStore();
   const { isSignedIn } = useAuth();
+
+  const [newPlaylistModalOpen, setNewPlaylistModalOpen] = useState(false);
 
   useEffect(() => {
     fetchAlbums();
@@ -28,6 +38,27 @@ const LeftSidebar = () => {
       fetchPlaylists();
     }
   }, [fetchAlbums, fetchPlaylists, isSignedIn]);
+
+  const handleCreatePlaylist = async (
+    title: string,
+    description: string,
+    imageFile?: File
+  ) => {
+    try {
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("description", description);
+      if (imageFile) formData.append("imageFile", imageFile);
+      formData.append("songIds", JSON.stringify([])); // Tạo playlist rỗng
+
+      await createOrUpdatePlaylist(formData);
+      toast.success("Tạo playlist mới thành công");
+      setNewPlaylistModalOpen(false);
+    } catch (error) {
+      console.error("Lỗi khi tạo playlist:", error);
+      toast.error("Lỗi khi tạo playlist");
+    }
+  };
 
   return (
     <div className="h-full flex flex-col gap-2">
@@ -101,6 +132,16 @@ const LeftSidebar = () => {
 
           <TabsContent value="playlists">
             <SignedIn>
+              {/* Nút tạo playlist */}
+              <div className="px-2 mb-2">
+                <button
+                  onClick={() => setNewPlaylistModalOpen(true)}
+                  className="w-full text-sm font-semibold px-3 py-2 rounded-md bg-green-600 hover:bg-green-700 text-white transition"
+                >
+                  + Create Playlist
+                </button>
+              </div>
+
               <ScrollArea className="h-[calc(100vh-300px)]">
                 <div className="space-y-2">
                   {isLoading ? (
@@ -118,7 +159,10 @@ const LeftSidebar = () => {
                           className="p-2 hover:bg-zinc-800 rounded-md flex items-center gap-3 group cursor-pointer"
                         >
                           <img
-                            src={playlist.imageUrl || "/default-playlist.png"}
+                            src={
+                              playlist.imageUrl ||
+                              "/public/cover-images/default.jpg"
+                            }
                             alt="Playlist img"
                             className="size-12 rounded-md flex-shrink-0 object-cover"
                           />
@@ -145,6 +189,13 @@ const LeftSidebar = () => {
                 Sign in to view your playlists.
               </p>
             )}
+
+            {/* Modal tạo playlist */}
+            <NewPlaylistModal
+              open={newPlaylistModalOpen}
+              onClose={() => setNewPlaylistModalOpen(false)}
+              onCreate={handleCreatePlaylist}
+            />
           </TabsContent>
 
           <TabsContent value="albums">

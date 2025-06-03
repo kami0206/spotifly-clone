@@ -114,7 +114,7 @@ const PlaylistPage = () => {
                     const isCurrentSong = currentSong?._id === song._id;
                     return (
                       <ContextMenu
-                        key={song._id}
+                        key={`${song._id}-${index}`} // ✅ UNIQUE key
                         itemType="song"
                         itemId={song._id}
                         itemTitle={song.title}
@@ -129,12 +129,14 @@ const PlaylistPage = () => {
                             {isCurrentSong && isPlaying ? (
                               <div className="size-4 text-green-500">♫</div>
                             ) : (
-                              <span className="group-hover:hidden">
-                                {index + 1}
-                              </span>
-                            )}
-                            {!isCurrentSong && (
-                              <Play className="h-4 w-4 hidden group-hover:block" />
+                              <>
+                                <span className="group-hover:hidden">
+                                  {index + 1}
+                                </span>
+                                {!isCurrentSong && (
+                                  <Play className="h-4 w-4 hidden group-hover:block" />
+                                )}
+                              </>
                             )}
                           </div>
                           <div className="flex items-center gap-3">
@@ -151,7 +153,7 @@ const PlaylistPage = () => {
                             </div>
                           </div>
                           <div className="flex items-center">
-                            {song.createdAt.split("T")[0]}
+                            {song.createdAt?.split("T")[0]}
                           </div>
                           <div className="flex items-center gap-4">
                             <span>{formatDuration(song.duration)}</span>
