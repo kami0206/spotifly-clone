@@ -11,6 +11,7 @@ interface SignInFormProps {
 const SignInForm = ({ onClose }: SignInFormProps) => {
   const { signIn, isLoaded: isSignInLoaded } = useSignIn();
   const { signUp, isLoaded: isSignUpLoaded } = useSignUp();
+
   const [isSignIn, setIsSignIn] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,54 +27,33 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
 
-  if (!isSignInLoaded || !isSignUpLoaded) {
-    return <div className="text-center text-gray-400">Loading...</div>;
-  }
+  if (!isSignInLoaded || !isSignUpLoaded) return <div>Loading...</div>;
 
-  // Email validation
-  const validateEmail = (email: string) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-  };
+  const validateEmail = (email: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const validatePassword = (password: string) => password.length >= 8;
 
-  // Password validation (minimum 8 characters)
-  const validatePassword = (password: string) => {
-    return password.length >= 8;
-  };
-
-  // Sign in with password
   const signInWithPassword = async () => {
-    if (!username.trim()) {
-      setError("Please enter your username.");
-      return;
-    }
-    if (!validatePassword(password)) {
-      setError("Password must be at least 8 characters long.");
-      return;
-    }
+    if (!username.trim()) return setError("Please enter your username.");
+    if (!validatePassword(password))
+      return setError("Password must be at least 8 characters.");
     setIsLoading(true);
     try {
-      const signInAttempt = await signIn.create({
+      const result = await signIn.create({
         strategy: "password",
         identifier: username,
         password,
       });
-      if (signInAttempt.status === "complete") {
-        window.location.href = "/auth-callback";
-      } else {
-        setError("Incorrect username or password.");
-      }
+      if (result.status === "complete") window.location.href = "/auth-callback";
+      else setError("Incorrect username or password.");
     } catch (err: any) {
-      setError(
-        err.errors?.[0]?.message || "Error signing in. Please try again."
-      );
+      setError(err.errors?.[0]?.message || "Sign in failed.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Sign in with Google
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = () => {
     signIn.authenticateWithRedirect({
       strategy: "oauth_google",
       redirectUrl: "/sso-callback",
@@ -81,88 +61,63 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
     });
   };
 
-  // Sign up with email and password
   const signUpWithEmailAndPassword = async () => {
-    if (!validateEmail(email)) {
-      setError("Please enter a valid email.");
-      return;
-    }
-    if (!username.trim()) {
-      setError("Please enter a username.");
-      return;
-    }
-    if (!validatePassword(password)) {
-      setError("Password must be at least 8 characters long.");
-      return;
-    }
-    if (!firstName.trim() || !lastName.trim()) {
-      setError("Please enter both first name and last name.");
-      return;
-    }
+    if (!validateEmail(email)) return setError("Please enter a valid email.");
+    if (!username.trim()) return setError("Please enter a username.");
+    if (!validatePassword(password))
+      return setError("Password must be at least 8 characters.");
+    if (!firstName || !lastName)
+      return setError("Please enter first and last name.");
     setIsLoading(true);
     try {
-      const signUpAttempt = await signUp.create({
+      const result = await signUp.create({
         emailAddress: email,
         username,
         password,
         firstName,
         lastName,
       });
-      await signUpAttempt.prepareEmailAddressVerification({
-        strategy: "email_code",
-      });
+      await result.prepareEmailAddressVerification({ strategy: "email_code" });
       setShowCodeInput(true);
-      setError("Verification code has been sent to your email!");
+      setError("Verification code sent to email.");
     } catch (err: any) {
-      if (err.errors?.[0]?.code === "form_identifier_exists") {
-        if (err.errors[0].meta?.paramName === "email_address") {
-          setError("This email is already in use.");
-        } else if (err.errors[0].meta?.paramName === "username") {
-          setError("This username is already in use.");
-        } else {
-          setError("This account already exists.");
-        }
-        setShowCodeInput(false);
-      } else {
-        setError(
-          err.errors?.[0]?.message || "Error signing up. Please try again."
-        );
-        setShowCodeInput(false);
-      }
+      const code = err.errors?.[0]?.code;
+      if (code === "form_identifier_exists")
+        setError("Email or username already exists.");
+      else setError(err.errors?.[0]?.message || "Sign up failed.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Verify code and complete sign-up
-  const verifyCodeAndSignUp = async () => {
-    if (!code.trim()) {
-      setError("Please enter the verification code.");
-      return;
-    }
+  const resendVerificationCode = async () => {
     setIsLoading(true);
     try {
-      const signUpAttempt = await signUp.attemptEmailAddressVerification({
-        code,
-      });
-      if (signUpAttempt.status === "complete") {
-        window.location.href = "/auth-callback";
-      } else {
-        setError("Invalid verification code.");
-      }
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      setError("Verification code resent to email.");
     } catch (err: any) {
-      setError(err.errors?.[0]?.message || "Error verifying code.");
+      setError(err.errors?.[0]?.message || "Failed to resend code.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Initiate password reset
-  const initiatePasswordReset = async () => {
-    if (!validateEmail(email)) {
-      setError("Please enter a valid email.");
-      return;
+  const verifyCodeAndSignUp = async () => {
+    if (!code.trim()) return setError("Enter verification code.");
+    setIsLoading(true);
+    try {
+      const result = await signUp.attemptEmailAddressVerification({ code });
+      if (result.status === "complete") window.location.href = "/auth-callback";
+      else setError("Invalid code.");
+    } catch (err: any) {
+      setError(err.errors?.[0]?.message || "Verification failed.");
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const initiatePasswordReset = async () => {
+    if (!validateEmail(email)) return setError("Enter a valid email.");
     setIsLoading(true);
     try {
       await signIn.create({
@@ -170,347 +125,262 @@ const SignInForm = ({ onClose }: SignInFormProps) => {
         identifier: email,
       });
       setShowCodeInput(true);
-      setError("A code has been sent to your email!");
+      setError("Reset code sent to email.");
     } catch (err: any) {
-      if (err.errors?.[0]?.code === "form_identifier_not_found") {
-        setError("This email does not exist.");
-      } else {
-        setError(
-          err.errors?.[0]?.message ||
-            "Error sending reset code. Please try again."
-        );
-      }
+      setError(err.errors?.[0]?.message || "Reset request failed.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Reset password
   const resetPassword = async () => {
-    if (!code.trim()) {
-      setError("Please enter the verification code.");
-      return;
-    }
-    if (!validatePassword(newPassword)) {
-      setError("New password must be at least 8 characters long.");
-      return;
-    }
+    if (!code.trim()) return setError("Enter reset code.");
+    if (!validatePassword(newPassword))
+      return setError("New password too short.");
     setIsLoading(true);
     try {
-      const resetAttempt = await signIn.attemptFirstFactor({
+      const result = await signIn.attemptFirstFactor({
         strategy: "reset_password_email_code",
         code,
         password: newPassword,
       });
-      if (resetAttempt.status === "complete") {
-        window.location.href = "/auth-callback";
-      } else {
-        setError("Unable to reset password.");
-      }
+      if (result.status === "complete") window.location.href = "/auth-callback";
+      else setError("Reset failed.");
     } catch (err: any) {
-      setError(
-        err.errors?.[0]?.message ||
-          "Error resetting password. Please try again."
-      );
+      setError(err.errors?.[0]?.message || "Reset failed.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Reset entire form
   const resetForm = () => {
     setEmail("");
-    setCode("");
     setUsername("");
     setPassword("");
-    setNewPassword("");
-    setShowCodeInput(false);
     setFirstName("");
     setLastName("");
+    setCode("");
+    setNewPassword("");
+    setShowCodeInput(false);
+    setError("");
     setIsSignIn(true);
     setIsForgotPassword(false);
-    setError("");
-    setShowPassword(false);
-    setShowNewPassword(false);
-  };
-
-  const handleClose = () => {
-    resetForm();
-    onClose();
   };
 
   return (
-    <div className="relative flex flex-col gap-6 p-8 max-w-sm w-full bg-zinc-800 shadow-lg rounded-lg border-l-4 border-gradient-to-r from-green-400 to-teal-500">
-      {/* Close Button */}
+    <div className="p-6 max-w-sm w-full bg-zinc-900/80 rounded-xl shadow-2xl text-white relative">
       <button
-        onClick={handleClose}
-        className="absolute top-2 right-2 text-gray-400 hover:text-white transition-colors"
-        aria-label="Close form"
+        onClick={() => {
+          resetForm();
+          onClose();
+        }}
+        className="absolute top-3 right-4 text-white text-xl font-bold"
       >
-        ✕
+        ×
       </button>
-      {/* Header */}
-      <div className="flex justify-center mb-4">
-        <h2 className="text-3xl font-bold text-white">
-          {isSignIn
-            ? isForgotPassword
-              ? "Reset Password"
-              : "Sign In"
-            : "Sign Up"}
-        </h2>
-      </div>
 
-      {isSignIn && !isForgotPassword ? (
-        <div className="flex flex-col gap-4">
-          <div className="relative">
-            <Input
-              type="text"
-              placeholder="Username or Email"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full h-12 pl-4 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-green-400"
-            />
-          </div>
-          <div className="relative">
-            <Input
-              type={showPassword ? "text" : "password"}
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full h-12 pl-4 pr-10 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-green-400"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
-            </button>
-          </div>
-          <div className="text-right">
-            <button
-              onClick={() => {
-                resetForm();
-                setIsForgotPassword(true);
-              }}
-              className="text-sm text-gray-400 hover:underline"
-            >
-              Forgot Password?
-            </button>
-          </div>
-          {error && <p className="text-red-400 text-sm text-center">{error}</p>}
-          <Button
-            onClick={signInWithPassword}
-            disabled={isLoading}
-            className="w-full h-12 bg-gradient-to-r from-green-400 to-teal-500 text-white font-semibold rounded-full hover:from-green-500 hover:to-teal-600 transition-all"
-          >
-            {isLoading ? "Signing in..." : "Sign In"}
-          </Button>
-          <div className="text-center text-gray-400 my-2">Or sign in with</div>
-          <div className="flex justify-center gap-4">
-            <Button
-              onClick={signInWithGoogle}
-              disabled={isLoading}
-              className="w-12 h-12 bg-zinc-700 border border-gray-600 rounded-full flex items-center justify-center hover:bg-zinc-600 transition-colors"
-            >
-              <span className="text-2xl text-white">G</span>
-            </Button>
-          </div>
-          <div className="text-center mt-4">
-            <span className="text-gray-400">Or </span>
-            <button
-              onClick={() => {
-                resetForm();
-                setIsSignIn(false);
-              }}
-              className="text-green-400 text-sm hover:underline"
-            >
-              Sign Up
-            </button>
-          </div>
-        </div>
-      ) : isSignIn && isForgotPassword ? (
-        <div className="flex flex-col gap-4">
-          {!showCodeInput ? (
+      <h2 className="text-3xl font-bold text-center mb-6">
+        {isSignIn
+          ? isForgotPassword
+            ? "Reset Password"
+            : "Login"
+          : "Sign Up"}
+      </h2>
+
+      <div className="flex flex-col gap-3">
+        {isSignIn ? (
+          isForgotPassword ? (
             <>
-              <div className="relative">
-                <Input
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-12 pl-4 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-green-400"
-                />
-              </div>
-              {error && (
-                <p className="text-red-400 text-sm text-center">{error}</p>
+              <Input
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              {showCodeInput && (
+                <>
+                  <Input
+                    placeholder="Code"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                  />
+                  <div className="relative">
+                    <Input
+                      placeholder="New Password"
+                      type={showNewPassword ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                    <button
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-2 top-2 text-white"
+                    >
+                      {showNewPassword ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
+                    </button>
+                  </div>
+                  <Button
+                    variant="secondary"
+                    onClick={initiatePasswordReset}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Sending..." : "Resend Code"}
+                  </Button>
+                </>
               )}
               <Button
-                onClick={initiatePasswordReset}
+                onClick={showCodeInput ? resetPassword : initiatePasswordReset}
                 disabled={isLoading}
-                className="w-full h-12 bg-gradient-to-r from-green-400 to-teal-500 text-white font-semibold rounded-full hover:from-green-500 hover:to-teal-600 transition-all"
               >
-                {isLoading ? "Sending code..." : "Send Reset Code"}
+                {isLoading
+                  ? "Please wait..."
+                  : showCodeInput
+                  ? "Reset Password"
+                  : "Send Code"}
               </Button>
             </>
           ) : (
             <>
+              <Input
+                placeholder="Username or Email"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
               <div className="relative">
                 <Input
-                  type="text"
-                  placeholder="Enter verification code"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  className="w-full h-12 pl-4 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-green-400"
-                />
-              </div>
-              <div className="relative">
-                <Input
-                  type={showNewPassword ? "text" : "password"}
-                  placeholder="New Password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full h-12 pl-4 pr-10 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-green-400"
+                  placeholder="Password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
                 <button
-                  type="button"
-                  onClick={() => setShowNewPassword(!showNewPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
-                  aria-label={
-                    showNewPassword ? "Hide password" : "Show password"
-                  }
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2 top-2 text-white"
                 >
-                  {showNewPassword ? <Eye size={20} /> : <EyeOff size={20} />}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-              {error && (
-                <p className="text-red-400 text-sm text-center">{error}</p>
-              )}
-              <Button
-                onClick={resetPassword}
-                disabled={isLoading}
-                className="w-full h-12 bg-gradient-to-r from-green-400 to-teal-500 text-white font-semibold rounded-full hover:from-green-500 hover:to-teal-600 transition-all"
-              >
-                {isLoading ? "Resetting..." : "Reset Password"}
+              <div className="text-right text-sm">
+                <button
+                  onClick={() => setIsForgotPassword(true)}
+                  className="text-blue-200 hover:underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
+              <Button onClick={signInWithPassword} disabled={isLoading}>
+                {isLoading ? "Signing in..." : "Login"}
               </Button>
-              <Button
-                onClick={initiatePasswordReset}
-                disabled={isLoading}
-                className="w-full h-12 bg-zinc-700 text-white rounded-full hover:bg-zinc-600 transition-all"
-              >
-                {isLoading ? "Resending..." : "Resend Code"}
+              <Button onClick={signInWithGoogle} variant="outline">
+                Sign in with Google
               </Button>
             </>
-          )}
-          <div className="text-center mt-4">
-            <span className="text-gray-400">Or </span>
-            <button
-              onClick={resetForm}
-              className="text-green-400 text-sm hover:underline"
-            >
-              Sign In
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-4">
-          <div className="relative">
+          )
+        ) : (
+          <>
             <Input
-              type="text"
               placeholder="First Name"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              className="w-full h-12 pl-4 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-green-400"
             />
-          </div>
-          <div className="relative">
             <Input
-              type="text"
               placeholder="Last Name"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              className="w-full h-12 pl-4 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-green-400"
             />
-          </div>
-          <div className="relative">
             <Input
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full h-12 pl-4 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-green-400"
-            />
-          </div>
-          <div className="relative">
-            <Input
-              type="email"
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full h-12 pl-4 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-green-400"
             />
-          </div>
-          <div className="relative">
             <Input
-              type={showPassword ? "text" : "password"}
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full h-12 pl-4 pr-10 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-green-400"
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
             />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
-            </button>
-          </div>
-          {error && <p className="text-red-400 text-sm text-center">{error}</p>}
-          {!showCodeInput ? (
-            <Button
-              onClick={signUpWithEmailAndPassword}
-              disabled={isLoading}
-              className="w-full h-12 bg-gradient-to-r from-green-400 to-teal-500 text-white font-semibold rounded-full hover:from-green-500 hover:to-teal-600 transition-all"
-            >
-              {isLoading ? "Signing up..." : "Sign Up"}
-            </Button>
-          ) : (
-            <>
-              <div className="relative">
+            <div className="relative">
+              <Input
+                placeholder="Password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <button
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-2 top-2 text-white"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            {showCodeInput && (
+              <>
                 <Input
-                  type="text"
-                  placeholder="Enter verification code"
+                  placeholder="Verification Code"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  className="w-full h-12 pl-4 bg-zinc-700 text-white border-gray-600 rounded-md focus:ring-0 focus:border-green-400"
                 />
-              </div>
-              {error && (
-                <p className="text-red-400 text-sm text-center">{error}</p>
-              )}
-              <Button
-                onClick={verifyCodeAndSignUp}
-                disabled={isLoading}
-                className="w-full h-12 bg-gradient-to-r from-green-400 to-teal-500 text-white font-semibold rounded-full hover:from-green-500 hover:to-teal-600 transition-all"
+                <Button
+                  variant="secondary"
+                  onClick={resendVerificationCode}
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Sending..." : "Resend Code"}
+                </Button>
+              </>
+            )}
+            <Button
+              onClick={
+                showCodeInput ? verifyCodeAndSignUp : signUpWithEmailAndPassword
+              }
+              disabled={isLoading}
+            >
+              {isLoading
+                ? "Processing..."
+                : showCodeInput
+                ? "Verify & Sign Up"
+                : "Create Account"}
+            </Button>
+          </>
+        )}
+
+        {error && (
+          <div className="mt-2 bg-red-600/20 text-red-200 p-2 text-center rounded text-sm">
+            {error}
+          </div>
+        )}
+
+        <div className="text-center text-sm mt-4">
+          {isSignIn ? (
+            <>
+              Don't have an account?{" "}
+              <button
+                onClick={() => {
+                  setIsSignIn(false);
+                  setError("");
+                }}
+                className="text-blue-200 underline"
               >
-                {isLoading ? "Verifying..." : "Verify and Complete"}
-              </Button>
+                Sign Up
+              </button>
+            </>
+          ) : (
+            <>
+              Already have an account?{" "}
+              <button
+                onClick={() => {
+                  setIsSignIn(true);
+                  setError("");
+                }}
+                className="text-blue-200 underline"
+              >
+                Login
+              </button>
             </>
           )}
-          <div className="text-center mt-4">
-            <span className="text-gray-400">Or </span>
-            <button
-              onClick={resetForm}
-              className="text-green-400 text-sm hover:underline"
-            >
-              Sign In
-            </button>
-          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
