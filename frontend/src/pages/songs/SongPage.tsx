@@ -44,9 +44,9 @@ const SongPage = () => {
   if (isLoading) return <div>Đang tải bài hát...</div>;
   if (error) return <div>Lỗi: {error}</div>;
 
-  const song =
-    currentSong && currentSong._id === id ? currentSong : currentSongInfo;
-
+  // const song =
+  //   currentSong && currentSong._id === id ? currentSong : currentSongInfo;
+  const song = currentSongInfo;
   if (!song) return <div>Không tìm thấy bài hát</div>;
 
   const handlePlayPause = () => {
